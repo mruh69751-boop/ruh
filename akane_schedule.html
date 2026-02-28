@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Mission Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; color: white; }
+        h1 { font-size: 24px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        
+        .status-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #eee;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        .update-btn {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .update-btn:active { transform: scale(0.95); }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .section h2 {
+            color: #0072ff;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-left: 5px solid #0072ff;
+            padding-left: 12px;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e9ecef;
+        }
+        .task-main { flex: 1; }
+        .task-title { font-weight: bold; font-size: 15px; margin-bottom: 5px; color: #222; }
+        .task-desc { font-size: 13px; color: #666; line-height: 1.4; }
+        
+        .tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        .tag-owner { background: #e2e3e5; color: #383d41; }
+        .tag-type-med { background: #f8d7da; color: #721c24; }
+        .tag-type-adm { background: #d1ecf1; color: #0c5460; }
+        .tag-type-edu { background: #fff3cd; color: #856404; }
+
+        @media (max-width: 600px) {
+            .task-item { flex-direction: column; align-items: flex-start; }
+            .task-meta { margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛡️ Family Task Aggregator</h1>
+            <div class="status-card" id="childStatus">計算中...</div>
+            <button class="update-btn" onclick="updateDashboard()">
+                現在のタスクを抽出
+            </button>
+        </header>
+
+        <div id="dashboardContent">
+            </div>
+    </div>
+
+    <script>
+        const BIRTH_DATE = new Date('2024-04-01');
+        const ENTRANCE_DATE = new Date('2028-04-01');
+
+        function getAge(today) {
+            let years = today.getFullYear() - BIRTH_DATE.getFullYear();
+            let months = today.getMonth() - BIRTH_DATE.getMonth();
+            if (months < 0) { years--; months += 12; }
+            return { years, months, totalMonths: years * 12 + months };
+        }
+
+        function updateDashboard() {
+            const today = new Date();
+            const age = getAge(today);
+            const content = document.getElementById('dashboardContent');
+            
+            // ステータス表示
+            document.getElementById('childStatus').innerHTML = 
+                `お子様: <strong>${age.years}歳 ${age.months}ヶ月</strong><br>` +
+                `<small>幼稚園入園（2028/04）まで あと ${Math.ceil((ENTRANCE_DATE - today)/(1000*60*60*24*30.4))}ヶ月</small>`;
+
+            content.innerHTML = '';
+
+            // カテゴリ別ロジック
+            const categories = [
+                { title: "🏥 医療・予防接種", tasks: generateMedicalTasks(age) },
+                { title: "⚖️ 行政手続き・健診", tasks: generateAdminTasks(age) },
+                { title: "🏫 幼稚園入園準備 (2028年4月組)", tasks: generateEduTasks(today) }
+            ];
+
+            categories.forEach(cat => {
+                if (cat.tasks.length > 0) {
+                    let sectionHtml = `<div class="section"><h2>${cat.title}</h2>`;
+                    cat.tasks.forEach(task => {
+                        sectionHtml += `
+                            <div class="task-item">
+                                <div class="task-main">
+                                    <div class="task-title">
+                                        <span class="tag tag-owner">${task.owner}</span>${task.title}
+                                    </div>
+                                    <div class="task-desc">${task.desc}</div>
+                                </div>
+                                <div class="task-meta">
+                                    <span class="tag ${task.typeClass}">${task.type}</span>
+                                </div>
+                            </div>`;
+                    });
+                    sectionHtml += `</div>`;
+                    content.innerHTML += sectionHtml;
+                }
+            });
+        }
+
+        function generateMedicalTasks(age) {
+            const tasks = [];
+            // 日本脳炎1期追加 (概ね2歳半〜)
+            if (age.totalMonths >= 24 && age.totalMonths <= 36) {
+                tasks.push({
+                    owner: "妻主導", title: "日本脳炎 第1期追加接種",
+                    desc: "1期2回完了から概ね1年後が推奨。母子手帳の記録を確認してください。",
+                    type: "予防接種", typeClass: "tag-type-med"
+                });
+            }
+            tasks.push({
+                owner: "夫(週末)", title: "定期歯科検診・フッ素塗布",
+                desc: "乳歯が生え揃う時期です。虫歯予防のため3〜4ヶ月に一度の受診を推奨。",
+                type: "任意", typeClass: "tag-type-med"
+            });
+            return tasks;
+        }
+
+        function generateAdminTasks(age) {
+            const tasks = [];
+            if (age.years === 2) {
+                tasks.push({
+                    owner: "妻主導", title: "2歳児歯科健診 (自治体)",
+                    desc: "お住まいの自治体から案内が届くはずです。日程の確認を。",
+                    type: "行政健診", typeClass: "tag-type-adm"
+                });
+            }
+            if (age.years === 3) {
+                tasks.push({
+                    owner: "両親", title: "3歳児健康診査",
+                    desc: "視力・聴力・尿検査など項目が増えます。事前アンケートの記入が必要です。",
+                    type: "最重要", typeClass: "tag-type-adm"
+                });
+            }
+            return tasks;
+        }
+
+        function generateEduTasks(today) {
+            const tasks = [];
+            const year = today.getFullYear();
+            
+            if (year === 2026) {
+                tasks.push({
+                    owner: "夫(リサーチ)", title: "近隣幼稚園のリストアップ",
+                    desc: "「3年保育」を前提に、通園範囲内の園の教育方針や延長保育時間を調査。",
+                    type: "調査", typeClass: "tag-type-edu"
+                });
+            } else if (year === 2027) {
+                tasks.push({
+                    owner: "両親", title: "幼稚園説明会・見学会参加",
+                    desc: "6月〜9月にかけて開催。実際の雰囲気を重視。願書配布は10月15日頃。 ",
+                    type: "行動", typeClass: "tag-type-edu"
+                });
+                tasks.push({
+                    owner: "夫(有給調整)", title: "願書提出・面接準備",
+                    desc: "11月1日が山場です。仕事のスケジュールを今のうちに確保してください。",
+                    type: "願書", typeClass: "tag-type-edu"
+                });
+            }
+            return tasks;
+        }
+
+        // 初期表示
+        updateDashboard();
+    </script>
+</body>
+</html>
