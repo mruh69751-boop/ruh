@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>戦略的投資ダッシュボード V3</title>
+    <title>戦略的投資ダッシュボード</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,50 +12,50 @@
         }
         .container { max-width: 1200px; margin: 0 auto; }
         header { text-align: center; margin-bottom: 25px; }
-        h1 { color: #38bdf8; font-size: 22px; margin-bottom: 15px; }
+        h1 { color: #38bdf8; font-size: 24px; margin-bottom: 10px; text-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
         .update-btn {
             background: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
-            color: white; border: none; padding: 12px 35px;
-            font-size: 15px; border-radius: 10px; cursor: pointer;
-            font-weight: bold; transition: 0.3s;
+            color: white; border: none; padding: 14px 40px;
+            font-size: 16px; border-radius: 12px; cursor: pointer;
+            font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
         }
         .update-btn:disabled { opacity: 0.5; }
+        .last-update { margin-top: 10px; font-size: 12px; opacity: 0.6; }
         .category-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;
         }
         .section {
-            background: rgba(30, 41, 59, 0.7); border-radius: 12px; padding: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
         }
         .section h2 {
-            font-size: 16px; margin-bottom: 12px; color: #38bdf8;
-            border-left: 4px solid #38bdf8; padding-left: 10px;
+            font-size: 17px; margin-bottom: 15px; color: #38bdf8;
+            border-left: 5px solid #38bdf8; padding-left: 12px;
         }
         .news-item {
-            background: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 8px;
-            margin-bottom: 8px; text-decoration: none; color: #e2e8f0; display: block;
-            border: 1px solid transparent; transition: 0.2s;
+            background: rgba(15, 23, 42, 0.5); padding: 14px; border-radius: 10px;
+            margin-bottom: 10px; text-decoration: none; color: #e2e8f0; display: block;
+            border: 1px solid transparent; transition: 0.2s ease;
         }
-        .news-item:hover { background: rgba(56, 189, 248, 0.1); border-color: #38bdf8; }
-        .news-item.important { border-left: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05); }
-        .news-item.important h3 { color: #fb7185; }
-        .news-meta { font-size: 10px; display: flex; justify-content: space-between; margin-bottom: 5px; color: #94a3b8; }
+        .news-item:hover { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; transform: translateX(5px); }
+        .news-item.important { border-left: 5px solid #f43f5e; background: rgba(244, 63, 94, 0.08); }
+        .news-item.important h3 { color: #fb7185; font-weight: bold; }
+        .news-meta { font-size: 10px; display: flex; justify-content: space-between; margin-bottom: 6px; color: #94a3b8; }
         .source-tag { font-weight: bold; color: #38bdf8; }
-        .news-item h3 { font-size: 13px; line-height: 1.5; }
-        .loading { text-align: center; padding: 20px; display: none; color: #38bdf8; font-weight: bold; }
+        .news-item h3 { font-size: 14px; line-height: 1.6; }
+        .loading { text-align: center; padding: 30px; display: none; color: #38bdf8; font-weight: bold; font-size: 18px; }
         .loading.active { display: block; }
-        .status-msg { font-size: 10px; color: #64748b; margin-top: 5px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>📊 STRATEGIC INVESTOR DASHBOARD</h1>
-            <button class="update-btn" id="updateBtn" onclick="fetchNews()">更新実行</button>
-            <div id="lastUpdate" class="status-msg"></div>
+            <button class="update-btn" id="updateBtn" onclick="fetchNews()">UPDATE FEEDS</button>
+            <div id="lastUpdate" class="last-update"></div>
         </header>
 
-        <div id="loading" class="loading">📡 データ同期中（数秒かかります）...</div>
+        <div id="loading" class="loading">📡 市場データを同期中...</div>
 
         <div class="category-grid">
             <div class="section">
@@ -79,21 +79,20 @@
 
     <script>
         const CONFIG = {
-            keywords: ['株価', '決算', 'S&P500', '利上げ', '円安', '買収', '上方修正', '新作', 'Unreal Engine', 'KONAMI', 'サイバーエージェント'],
+            // あなたのキャリアと投資に直結する重要語句
+            keywords: ['株価', '決算', 'S&P500', '利上げ', '円安', '買収', '新作', 'Unreal Engine', 'KONAMI', 'サイバーエージェント'],
             sources: {
                 jpStocks: [
                     { name: '日経新聞速報', feed: 'https://www.nikkei.com/rss/news/keyword.rdf' },
-                    { name: 'ロイター日本株', feed: 'https://jp.reuters.com/rssFeed/stocksNews/' },
-                    { name: '産経経済', feed: 'https://www.sankei.com/rss/news/economy.xml' }
+                    { name: 'ロイター日本株', feed: 'https://jp.reuters.com/rssFeed/stocksNews/' }
                 ],
                 usStocks: [
                     { name: 'ロイター海外株', feed: 'https://jp.reuters.com/rssFeed/worldNews/' },
-                    { name: 'CNNビジネス', feed: 'https://www.cnn.co.jp/rss/xml/business.xml' },
-                    { name: 'CNET海外', feed: 'https://japan.cnet.com/rss/index.rdf' }
+                    { name: 'CNNビジネス', feed: 'https://www.cnn.co.jp/rss/xml/business.xml' }
                 ],
                 economy: [
-                    { name: 'ITmediaビジネス', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' },
-                    { name: 'PR TIMES 経済', feed: 'https://prtimes.jp/main/html/index/category_id/1/refer/rss' }
+                    { name: 'ITmedia', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' },
+                    { name: 'PR TIMES', feed: 'https://prtimes.jp/main/html/index/category_id/1/refer/rss' }
                 ],
                 entertainment: [
                     { name: 'ファミ通', feed: 'https://www.famitsu.com/feed' },
@@ -103,11 +102,7 @@
             }
         };
 
-        // 複数のプロキシを使い分けることで制限を回避する工夫
-        const PROXIES = [
-            'https://api.rss2json.com/v1/api.json?rss_url=',
-            'https://api.allorigins.win/raw?url=' // 予備（将来的な拡張用）
-        ];
+        const RSS_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
         async function fetchNews() {
             const btn = document.getElementById('updateBtn');
@@ -117,9 +112,9 @@
 
             try {
                 await Promise.all(Object.keys(CONFIG.sources).map(cat => loadCategory(cat, `${cat}News`)));
-                document.getElementById('lastUpdate').textContent = `最終同期: ${new Date().toLocaleString()}`;
+                document.getElementById('lastUpdate').textContent = `最終更新: ${new Date().toLocaleString()}`;
             } catch (err) {
-                console.error("更新エラー:", err);
+                console.error(err);
             } finally {
                 btn.disabled = false;
                 loader.classList.remove('active');
@@ -132,8 +127,7 @@
             
             const results = await Promise.all(feeds.map(async (src) => {
                 try {
-                    // キャッシュ回避のためランダムな数字を付与
-                    const response = await fetch(PROXIES[0] + encodeURIComponent(src.feed) + '&nocache=' + Date.now());
+                    const response = await fetch(RSS_API + encodeURIComponent(src.feed) + '&t=' + Date.now());
                     const data = await response.json();
                     if (data.status === 'ok') {
                         return data.items.map(item => ({
@@ -144,9 +138,7 @@
                         }));
                     }
                     return [];
-                } catch (e) {
-                    return []; // エラーのサイトは飛ばして次に進む
-                }
+                } catch (e) { return []; }
             }));
 
             const allNews = results.flat()
@@ -156,12 +148,7 @@
                 }))
                 .sort((a, b) => (a.isImportant === b.isImportant ? b.date - a.date : a.isImportant ? -1 : 1));
 
-            if (allNews.length === 0) {
-                container.innerHTML = '<p style="font-size:11px; color:#64748b;">現在取得できません。時間を空けて更新してください。</p>';
-                return;
-            }
-
-            container.innerHTML = allNews.slice(0, 7).map(item => `
+            container.innerHTML = allNews.slice(0, 8).map(item => `
                 <a href="${item.link}" target="_blank" class="news-item ${item.isImportant ? 'important' : ''}">
                     <div class="news-meta">
                         <span class="source-tag">${item.isImportant ? '🔥重要' : item.source}</span>
