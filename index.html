@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マイニュースアグリゲーター</title>
+    <title>戦略的ニュースアグリゲーター</title>
     <style>
         * {
             margin: 0;
@@ -13,14 +13,14 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             padding: 20px;
-            color: #333;
+            color: #e9ecef;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -30,39 +30,115 @@
         }
 
         h1 {
-            color: white;
-            font-size: 28px;
+            color: #4cc9f0;
+            font-size: 24px;
             margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
         }
 
         .update-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #4361ee 0%, #4cc9f0 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            border-radius: 50px;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+            transition: all 0.2s;
             font-weight: bold;
         }
 
-        .update-btn:active {
-            transform: scale(0.95);
+        .update-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6);
         }
 
         .update-btn:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .last-update {
+            margin-top: 10px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .section {
+            background: #0f3460;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .section h2 {
+            color: #4cc9f0;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4361ee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .news-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .news-item {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4361ee;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #e9ecef;
+            display: block;
+        }
+
+        .news-item:hover {
+            background: #1a2a4d;
+            transform: translateX(5px);
+        }
+
+        /* 強調記事のスタイル */
+        .news-item.important-news {
+            border-left: 6px solid #f72585;
+            background: linear-gradient(90deg, #2d1b33 0%, #16213e 100%);
+        }
+
+        .news-item.important-news h3 {
+            color: #ff4d6d;
+            font-weight: bold;
+        }
+
+        .news-item h3 {
+            font-size: 15px;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        .news-source {
+            font-size: 11px;
+            color: #4cc9f0;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .news-time {
+            font-size: 11px;
+            color: #888;
         }
 
         .loading {
             text-align: center;
-            color: white;
-            font-size: 18px;
-            margin: 20px 0;
+            padding: 20px;
             display: none;
         }
 
@@ -70,256 +146,145 @@
             display: block;
         }
 
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .section {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .section h2 {
-            color: #667eea;
-            font-size: 22px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .news-grid {
-            display: grid;
-            gap: 15px;
-        }
-
-        .news-item {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-            padding: 15px;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-            transition: transform 0.2s;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-
-        .news-item:hover {
-            transform: translateX(5px);
-        }
-
-        .news-item:active {
-            transform: scale(0.98);
-        }
-
-        .news-item h3 {
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-
-        .news-source {
-            font-size: 12px;
-            color: #667eea;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .news-time {
-            font-size: 11px;
-            color: #999;
-        }
-
         .error {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
+            background: #5a1a1a;
+            color: #ff8888;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
             display: none;
-        }
-
-        .error.active {
-            display: block;
-        }
-
-        .last-update {
-            text-align: center;
-            color: white;
             font-size: 14px;
-            margin-top: 10px;
-            opacity: 0.8;
         }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            .section {
-                padding: 20px;
-            }
-
-            .section h2 {
-                font-size: 20px;
-            }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            h1 { font-size: 20px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎮📰 マイニュースアグリゲーター</h1>
+            <h1>🎯 STRATEGIC FEED AGGREGATOR</h1>
             <button class="update-btn" id="updateBtn" onclick="fetchNews()">
-                🔄 最新ニュースを取得
+                FETCH LATEST
             </button>
             <div class="last-update" id="lastUpdate"></div>
         </header>
 
-        <div class="loading" id="loading">
-            <div class="loading-spinner"></div>
-            <p>📡 最新ニュースを取得中...</p>
-        </div>
-
-        <div class="error" id="error"></div>
-
-        <div class="section">
-            <h2>🎮 ゲーム・エンタメ・オタク文化</h2>
-            <div class="news-grid" id="entertainmentNews">
-                <p style="color: #999; text-align: center;">更新ボタンを押してニュースを取得してください</p>
-            </div>
+        <div id="error" class="error"></div>
+        
+        <div id="loading" class="loading">
+            <p>📡 データを同期中...</p>
         </div>
 
         <div class="section">
-            <h2>💼 日本経済</h2>
-            <div class="news-grid" id="economyNews">
-                <p style="color: #999; text-align: center;">更新ボタンを押してニュースを取得してください</p>
-            </div>
+            <h2>🎮 GAME & CREATIVE</h2>
+            <div class="news-grid" id="entertainmentNews"></div>
+        </div>
+
+        <div class="section">
+            <h2>📈 ECONOMY & TECH</h2>
+            <div class="news-grid" id="economyNews"></div>
         </div>
     </div>
 
     <script>
-// ニュースソース定義（RSSフィードのURL）
-        const newsSources = {
-            entertainment: [
-                { name: 'ファミ通.com', feed: 'https://www.famitsu.com/feed' },
-                { name: '4Gamer.net', feed: 'https://www.4gamer.net/rss/index.xml' },
-                { name: 'GAME Watch', feed: 'https://game.watch.impress.co.jp/data/rss/1.0/gmw/feed.rdf' }
-            ],
-            economy: [
-                { name: 'ITmedia ビジネス', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' },
-                { name: 'CNET Japan', feed: 'https://feeds.japan.cnet.com/rss/index.rdf' }
-            ]
+        // --- カスタマイズ設定：ここを書き換えるだけで調整可能 ---
+        const CONFIG = {
+            // 強調したいキーワード（自動的に上位表示されます）
+            keywords: ['株価', '決算', 'ストップ高', 'Unreal Engine', '新作ゲーム', '採用', '買収', 'メタバース'],
+            
+            // ニュースソース
+            sources: {
+                entertainment: [
+                    { name: 'ファミ通', feed: 'https://www.famitsu.com/feed' },
+                    { name: '4Gamer', feed: 'https://www.4gamer.net/rss/index.xml' },
+                    { name: 'GAME Watch', feed: 'https://game.watch.impress.co.jp/data/rss/1.0/gmw/feed.rdf' }
+                ],
+                economy: [
+                    { name: 'ロイター 経済', feed: 'https://jp.reuters.com/rssFeed/businessNews/' },
+                    { name: '経済界', feed: 'https://keizaikai.co.jp/feed/' },
+                    { name: 'ITmedia ビジネス', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' },
+                    { name: 'PR TIMES 経済', feed: 'https://prtimes.jp/main/html/index/category_id/1/refer/rss' }
+                ]
+            }
         };
 
-        // RSSをJSONに変換するプロキシAPI
-        const RSS_2_JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
+        const RSS_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
         async function fetchNews() {
-            const updateBtn = document.getElementById('updateBtn');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            const containers = {
-                entertainment: document.getElementById('entertainmentNews'),
-                economy: document.getElementById('economyNews')
-            };
-
-            updateBtn.disabled = true;
-            loading.classList.add('active');
-            error.classList.remove('active');
+            const btn = document.getElementById('updateBtn');
+            const loader = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            
+            btn.disabled = true;
+            loader.classList.add('active');
+            errorDiv.style.display = 'none';
 
             try {
-                // 両方のカテゴリを並列で取得
                 await Promise.all([
-                    updateCategory('entertainment', containers.entertainment),
-                    updateCategory('economy', containers.economy)
+                    loadCategory('entertainment', 'entertainmentNews'),
+                    loadCategory('economy', 'economyNews')
                 ]);
-
+                
                 const now = new Date();
                 document.getElementById('lastUpdate').textContent = 
-                    `最終更新: ${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-
+                    `LAST UPDATE: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
             } catch (err) {
-                console.error('Fetch Error:', err);
-                error.textContent = '一部のニュース取得に失敗しました。時間をおいて試してください。';
-                error.classList.add('active');
+                errorDiv.textContent = '一部のニュースを取得できませんでした。';
+                errorDiv.style.display = 'block';
             } finally {
-                updateBtn.disabled = false;
-                loading.classList.remove('active');
+                btn.disabled = false;
+                loader.classList.remove('active');
             }
         }
 
-        async function updateCategory(category, container) {
-            const sources = newsSources[category];
-            let allItems = [];
-
-            // 各ソースからデータを取得
-            const fetchPromises = sources.map(async (source) => {
+        async function loadCategory(type, containerId) {
+            const container = document.getElementById(containerId);
+            const feeds = CONFIG.sources[type];
+            
+            const results = await Promise.all(feeds.map(async (src) => {
                 try {
-                    const response = await fetch(RSS_2_JSON_API + encodeURIComponent(source.feed));
-                    const data = await response.json();
-                    if (data.status === 'ok') {
-                        return data.items.map(item => ({
-                            source: source.name,
-                            title: item.title,
-                            url: item.link,
-                            time: formatTime(item.pubDate)
-                        }));
-                    }
-                } catch (e) {
-                    console.warn(`${source.name} の取得失敗`);
-                    return [];
-                }
-            });
+                    const res = await fetch(RSS_API + encodeURIComponent(src.feed));
+                    const data = await res.json();
+                    return data.items.map(item => ({
+                        source: src.name,
+                        title: item.title,
+                        link: item.link,
+                        date: new Date(item.pubDate)
+                    }));
+                } catch (e) { return []; }
+            }));
 
-            const results = await Promise.all(fetchPromises);
-            allItems = results.flat().sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
-            
-            displayNews(container, allItems.slice(0, 10)); // 最新10件を表示
+            const allNews = results.flat()
+                .map(item => {
+                    const isImportant = CONFIG.keywords.some(k => item.title.includes(k));
+                    return { ...item, isImportant };
+                })
+                .sort((a, b) => {
+                    // 1. 重要記事を優先、2. 日付順
+                    if (a.isImportant !== b.isImportant) return a.isImportant ? -1 : 1;
+                    return b.date - a.date;
+                });
+
+            render(container, allNews.slice(0, 12));
         }
 
-        function formatTime(dateStr) {
-            const date = new Date(dateStr);
-            const now = new Date();
-            const diffMin = Math.floor((now - date) / 1000 / 60);
-            
-            if (diffMin < 60) return `${diffMin}分前`;
-            const diffHour = Math.floor(diffMin / 60);
-            if (diffHour < 24) return `${diffHour}時間前`;
-            return `${date.getMonth() + 1}/${date.getDate()}`;
-        }
-
-        function displayNews(container, newsItems) {
-            if (!newsItems || newsItems.length === 0) {
-                container.innerHTML = '<p style="color: #999; text-align: center;">取得可能なニュースがありません</p>';
-                return;
-            }
-
-            container.innerHTML = newsItems.map(item => `
-                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-item">
-                    <div class="news-source">${item.source}</div>
+        function render(container, items) {
+            container.innerHTML = items.map(item => `
+                <a href="${item.link}" target="_blank" class="news-item ${item.isImportant ? 'important-news' : ''}">
+                    <div class="news-source">
+                        <span>${item.isImportant ? '🔥 CRITICAL' : item.source}</span>
+                        <span class="news-time">${item.date.getMonth()+1}/${item.date.getDate()}</span>
+                    </div>
                     <h3>${item.title}</h3>
-                    <div class="news-time">${item.time}</div>
                 </a>
             `).join('');
         }
+
+        // 初回実行
+        fetchNews();
     </script>
 </body>
 </html>
