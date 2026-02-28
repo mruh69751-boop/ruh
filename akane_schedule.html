@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yamato Family Mission Dashboard</title>
+    <title>Yamato Family Strategic Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -28,7 +28,6 @@
         }
 
         .update-btn {
-            background: #ff4b2b;
             background: linear-gradient(to right, #ff416c, #ff4b2b);
             color: white;
             border: none;
@@ -39,6 +38,7 @@
             font-weight: bold;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             margin-bottom: 20px;
+            width: 100%;
         }
 
         .section {
@@ -56,17 +56,25 @@
             padding-bottom: 8px;
         }
 
+        /* リンクをカード全体に適用 */
+        .task-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            margin-bottom: 12px;
+            transition: transform 0.1s;
+        }
+        .task-link:hover { transform: translateY(-2px); }
+
         .task-card {
             background: #fdfdfd;
-            border-left: 4px solid #1e3c72;
+            border-left: 5px solid #1e3c72;
             padding: 15px;
-            margin-bottom: 10px;
             border-radius: 0 8px 8px 0;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             border: 1px solid #eee;
-            border-left-width: 5px;
         }
         .task-important { border-left-color: #ff4b2b; background: #fff9f9; }
         
@@ -76,6 +84,7 @@
         .tag-adm { background: #17a2b8; }
         .tag-edu { background: #ffc107; color: #000; }
         .tag-money { background: #28a745; }
+        .arrow { color: #ccc; font-size: 20px; padding-left: 10px; }
     </style>
 </head>
 <body>
@@ -83,7 +92,7 @@
         <header>
             <h1>🛡️ 大和市・育児戦略ダッシュボード</h1>
             <div class="info-panel" id="statusSummary">計算中...</div>
-            <button class="update-btn" onclick="renderDashboard()">情報を最新に更新</button>
+            <button class="update-btn" onclick="renderDashboard()">最新の公式情報を反映</button>
         </header>
 
         <div id="mainContent"></div>
@@ -100,56 +109,63 @@
             const months = ageMonths % 12;
 
             document.getElementById('statusSummary').innerHTML = 
-                `<strong>お子様:</strong> ${years}歳${months}ヶ月 | <strong>所在地:</strong> 神奈川県大和市<br>` +
-                `<strong>家賃補助開始まで:</strong> あと ${Math.max(0, Math.ceil((SUBSIDY_START - now)/(1000*60*60*24*30.4)))}ヶ月 (月+5万円)`;
+                `<strong>お子様:</strong> ${years}歳${months}ヶ月 | <strong>大和市</strong><br>` +
+                `<strong>家賃補助開始:</strong> 2027/06〜 (月+5万円)`;
 
             const content = document.getElementById('mainContent');
             content.innerHTML = '';
 
-            // 1. 行政・金銭（申請しないと損するもの）
-            addSection(content, "💰 申請必須！損をしないための手続き", [
+            // 1. 行政・金銭（リンク付）
+            addSection(content, "💰 申請必須！損をしない手続き", [
                 {
                     title: "幼児教育・保育無償化の認定申請",
-                    desc: "幼稚園入園前に「認定」を受けないと無償化されません。入園願書提出時（2027年10月）に同時申請が一般的ですが、事前に『幼稚園利用ガイド』を市HPで要確認。",
+                    desc: "幼稚園入園前に必須。大和市の「子育て王国」サイトで詳細を確認。",
+                    url: "https://www.city.yamato.lg.jp/section/ehon_no_machi/life_event/nyuen/index.html",
                     tag: "最重要", tagClass: "tag-adm"
                 },
                 {
-                    title: "小児医療証の更新確認",
-                    desc: "大和市は所得制限なしで中学卒業まで助成。年度末に新しい医療証が届くか確認してください。",
-                    tag: "行政", tagClass: "tag-adm"
-                },
-                {
-                    title: "公務員版・児童手当の申請",
-                    desc: "※もし貴殿が公務員、または転職等で状況が変わる場合、大和市は申請主義です。遡り支給はないため注意。",
+                    title: "児童手当：電子申請窓口",
+                    desc: "転職や引越しの際は必須。遡り支給がないため即実行が鉄則です。",
+                    url: "https://www.city.yamato.lg.jp/gyosei/soshik/7/sonohokanojoho/kosodate/kosodatesupport/6385.html",
                     tag: "現金", tagClass: "tag-money"
+                },
+                {
+                    title: "大和市：らくらく予防接種",
+                    desc: "月齢に合わせたスケジュール管理。神奈川県アプリとの連携も可能。",
+                    url: "https://yamato.city-hc.jp/",
+                    tag: "医療", tagClass: "tag-adm"
                 }
             ]);
 
-            // 2. 大和市・幼稚園スケジュール
-            addSection(content, "🏫 大和市 幼稚園入園スケジュール", [
+            // 2. 教育・健診
+            addSection(content, "🏫 大和市 幼稚園・健診スケジュール", [
                 {
-                    title: "大和市「幼稚園利用ガイド」の入手",
-                    desc: "例年9月頃に最新版が発行されます。市役所ほいく課や各分室で配布。2027年秋の入園に向けて、2026年秋から各園の「プレ保育」枠を狙うのが定石。",
+                    title: "3歳6か月児健康診査の詳細",
+                    desc: "大和市では3歳半で実施。視力・聴力検査のやり方を公式動画等で予習。",
+                    url: "https://www.city.yamato.lg.jp/section/ehon_no_machi/age/F/F00001.html",
+                    tag: "健診", tagClass: "tag-adm"
+                },
+                {
+                    title: "大和市：幼稚園利用ガイド（最新版）",
+                    desc: "入園までの流れ、各園の特色がまとまった必読資料です。",
+                    url: "https://www.city.yamato.lg.jp/gyosei/soshik/31/kosodate/hoikuen_yochien/yochien/5515.html",
                     tag: "教育", tagClass: "tag-edu"
-                },
-                {
-                    title: "近隣園の「園庭開放」リサーチ",
-                    desc: "大和市内の私立幼稚園は園ごとに特色が強いです。2歳のうちに、平日のリモートワーク前後や週末に場所の確認を。",
-                    tag: "調査", tagClass: "tag-edu"
                 }
             ]);
 
-            // 3. 戦略的メモ（39歳・ディレクター視点）
-            addSection(content, "📈 39歳からの資産・キャリア戦略", [
+            // 3. 副業・資産
+            addSection(content, "📈 キャリア・資産戦略リンク", [
                 {
-                    title: "2027年6月：家賃補助(5万円)の使途確定",
-                    desc: "年間60万円の余剰資金が発生します。これは『子供の教育資金（新NISA）』に全振りするか、副業noteの広告費等に充てるか、今のうちに奥様と合意形成を。",
-                    tag: "戦略", tagClass: "tag-money"
+                    title: "新NISA：大和証券/SBI等での運用再考",
+                    desc: "2027年からの家賃補助5万円を「成長投資枠」へ回すシミュレーション。",
+                    url: "https://www.fsa.go.jp/policy/nisa2/index.html",
+                    tag: "投資", tagClass: "tag-money"
                 },
                 {
-                    title: "3歳児健診の壁（2027年4月〜）",
-                    desc: "大和市の3歳児健診は項目が多く、自宅での視力・聴力検査が必要です。ディレクターとしてこの時期のプロジェクト進行を調整できるよう、今からQ2の予定を意識。",
-                    tag: "管理", tagClass: "tag-adm"
+                    title: "note：クリエイター向け最新動向",
+                    desc: "副業収益化のため、他ディレクターの成功事例をチェック。",
+                    url: "https://note.com/topic/creators",
+                    tag: "副業", tagClass: "tag-money"
                 }
             ]);
         }
@@ -158,12 +174,15 @@
             let html = `<div class="section"><h2>${title}</h2>`;
             tasks.forEach(t => {
                 html += `
-                    <div class="task-card ${t.tag === '最重要' ? 'task-important' : ''}">
-                        <div class="task-main">
-                            <div class="task-title">${t.title}<span class="tag ${t.tagClass}">${t.tag}</span></div>
-                            <div class="task-desc">${t.desc}</div>
+                    <a href="${t.url}" target="_blank" rel="noopener noreferrer" class="task-link">
+                        <div class="task-card ${t.tag === '最重要' ? 'task-important' : ''}">
+                            <div class="task-main">
+                                <div class="task-title">${t.title}<span class="tag ${t.tagClass}">${t.tag}</span></div>
+                                <div class="task-desc">${t.desc}</div>
+                            </div>
+                            <div class="arrow">›</div>
                         </div>
-                    </div>`;
+                    </a>`;
             });
             html += `</div>`;
             container.innerHTML += html;
