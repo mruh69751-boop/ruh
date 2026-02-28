@@ -216,49 +216,49 @@
     </div>
 
     <script>
-        // ニュースソース定義（実際のURLとフィード）
+// ニュースソース定義（RSSフィードのURL）
         const newsSources = {
             entertainment: [
-                { name: 'ファミ通.com', url: 'https://www.famitsu.com/', feed: 'https://www.famitsu.com/feed' },
-                { name: '4Gamer.net', url: 'https://www.4gamer.net/', feed: 'https://www.4gamer.net/rss/index.xml' },
-                { name: 'GAME Watch', url: 'https://game.watch.impress.co.jp/', feed: 'https://game.watch.impress.co.jp/data/rss/1.0/gmw/feed.rdf' },
-                { name: 'IGN Japan', url: 'https://jp.ign.com/', feed: 'https://jp.ign.com/feed.xml' },
-                { name: 'アニメ!アニメ!', url: 'https://animeanime.jp/', feed: 'https://animeanime.jp/feed/' }
+                { name: 'ファミ通.com', feed: 'https://www.famitsu.com/feed' },
+                { name: '4Gamer.net', feed: 'https://www.4gamer.net/rss/index.xml' },
+                { name: 'GAME Watch', feed: 'https://game.watch.impress.co.jp/data/rss/1.0/gmw/feed.rdf' }
             ],
             economy: [
-                { name: 'ロイター', url: 'https://jp.reuters.com/', feed: 'https://jp.reuters.com/rssFeed/businessNews' },
-                { name: 'ITmedia', url: 'https://www.itmedia.co.jp/', feed: 'https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml' },
-                { name: 'CNET Japan', url: 'https://japan.cnet.com/', feed: 'https://feeds.japan.cnet.com/rss/index.rdf' }
+                { name: 'ITmedia ビジネス', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' },
+                { name: 'CNET Japan', feed: 'https://feeds.japan.cnet.com/rss/index.rdf' }
             ]
         };
+
+        // RSSをJSONに変換するプロキシAPI
+        const RSS_2_JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
         async function fetchNews() {
             const updateBtn = document.getElementById('updateBtn');
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
-            const entertainmentContainer = document.getElementById('entertainmentNews');
-            const economyContainer = document.getElementById('economyNews');
+            const containers = {
+                entertainment: document.getElementById('entertainmentNews'),
+                economy: document.getElementById('economyNews')
+            };
 
             updateBtn.disabled = true;
             loading.classList.add('active');
             error.classList.remove('active');
 
             try {
-                // サンプルニュースを生成（RSSフィードの代わり）
-                const entertainmentNews = generateSampleNews(newsSources.entertainment);
-                const economyNews = generateSampleNews(newsSources.economy);
+                // 両方のカテゴリを並列で取得
+                await Promise.all([
+                    updateCategory('entertainment', containers.entertainment),
+                    updateCategory('economy', containers.economy)
+                ]);
 
-                displayNews(entertainmentContainer, entertainmentNews);
-                displayNews(economyContainer, economyNews);
-
-                // 最終更新時刻
                 const now = new Date();
                 document.getElementById('lastUpdate').textContent = 
                     `最終更新: ${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
 
             } catch (err) {
-                console.error('エラー:', err);
-                error.textContent = 'ニュースの取得に失敗しました: ' + err.message;
+                console.error('Fetch Error:', err);
+                error.textContent = '一部のニュース取得に失敗しました。時間をおいて試してください。';
                 error.classList.add('active');
             } finally {
                 updateBtn.disabled = false;
@@ -266,61 +266,49 @@
             }
         }
 
-        function generateSampleNews(sources) {
-            const templates = {
-                entertainment: [
-                    '新作タイトルの発売日が発表、予約受付開始',
-                    '人気シリーズの続編制作が正式決定',
-                    '大型アップデートが配信開始、新コンテンツ追加',
-                    'eスポーツ大会で日本チームが優勝',
-                    'コラボイベントが期間限定で開催中',
-                    '最新トレーラーが公開、注目の新要素が明らかに',
-                    'ユーザー数が過去最高を記録',
-                    '人気キャラクターの新グッズが発売決定',
-                    '公式大会の開催が発表、参加登録受付中',
-                    'サービス開始から周年記念イベント実施'
-                ],
-                economy: [
-                    '大手企業が過去最高益を発表',
-                    '新技術への投資を拡大、事業強化へ',
-                    '株価が年初来高値を更新',
-                    'M&A交渉が最終段階、来月発表へ',
-                    '新製品の販売が好調、増産体制へ',
-                    '海外市場での事業展開を加速',
-                    '業界再編の動きが活発化',
-                    'デジタル化投資を大幅増額',
-                    '四半期決算で増収増益を達成',
-                    '新規事業への参入を正式発表'
-                ]
-            };
+        async function updateCategory(category, container) {
+            const sources = newsSources[category];
+            let allItems = [];
 
-            const category = sources === newsSources.entertainment ? 'entertainment' : 'economy';
-            const newsItems = [];
-            
-            // 各ソースから1-2件ずつニュースを生成
-            sources.forEach((source, idx) => {
-                const numArticles = Math.floor(Math.random() * 2) + 1;
-                for (let i = 0; i < numArticles && newsItems.length < 10; i++) {
-                    const template = templates[category][Math.floor(Math.random() * templates[category].length)];
-                    const hoursAgo = Math.floor(Math.random() * 24);
-                    const minutesAgo = Math.floor(Math.random() * 60);
-                    
-                    newsItems.push({
-                        source: source.name,
-                        title: template,
-                        url: source.url,
-                        time: hoursAgo > 0 ? `${hoursAgo}時間前` : `${minutesAgo}分前`
-                    });
+            // 各ソースからデータを取得
+            const fetchPromises = sources.map(async (source) => {
+                try {
+                    const response = await fetch(RSS_2_JSON_API + encodeURIComponent(source.feed));
+                    const data = await response.json();
+                    if (data.status === 'ok') {
+                        return data.items.map(item => ({
+                            source: source.name,
+                            title: item.title,
+                            url: item.link,
+                            time: formatTime(item.pubDate)
+                        }));
+                    }
+                } catch (e) {
+                    console.warn(`${source.name} の取得失敗`);
+                    return [];
                 }
             });
 
-            // シャッフルして10件に制限
-            return newsItems.sort(() => Math.random() - 0.5).slice(0, 10);
+            const results = await Promise.all(fetchPromises);
+            allItems = results.flat().sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+            
+            displayNews(container, allItems.slice(0, 10)); // 最新10件を表示
+        }
+
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMin = Math.floor((now - date) / 1000 / 60);
+            
+            if (diffMin < 60) return `${diffMin}分前`;
+            const diffHour = Math.floor(diffMin / 60);
+            if (diffHour < 24) return `${diffHour}時間前`;
+            return `${date.getMonth() + 1}/${date.getDate()}`;
         }
 
         function displayNews(container, newsItems) {
-            if (newsItems.length === 0) {
-                container.innerHTML = '<p style="color: #999; text-align: center;">ニュースが見つかりませんでした</p>';
+            if (!newsItems || newsItems.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center;">取得可能なニュースがありません</p>';
                 return;
             }
 
@@ -332,9 +320,6 @@
                 </a>
             `).join('');
         }
-
-        // ページ読み込み時の初期表示
-        console.log('マイニュースアグリゲーターが起動しました！');
     </script>
 </body>
 </html>
