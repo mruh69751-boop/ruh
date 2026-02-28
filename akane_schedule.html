@@ -3,192 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yamato Family Strategic Dashboard</title>
+    <title>Yamato Childcare Navigator</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
-        }
-        .container { max-width: 800px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 25px; color: white; }
-        h1 { font-size: 22px; margin-bottom: 10px; }
-        
-        .info-panel {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
+            background: #f0f2f5;
             padding: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        header { 
+            background: #fff; 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             margin-bottom: 20px;
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+        }
+        h1 { font-size: 20px; color: #1a73e8; margin-bottom: 8px; }
+        .age-badge {
+            background: #e8f0fe;
+            color: #1967d2;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
             font-size: 14px;
         }
 
         .update-btn {
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            width: 100%;
+            background: #1a73e8;
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 12px;
+            border-radius: 8px;
             font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-            width: 100%;
+            margin: 15px 0;
+            cursor: pointer;
         }
 
-        .section {
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px 5px;
+            color: #5f6368;
+            display: flex;
+            align-items: center;
+        }
+
+        .card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-        .section h2 {
-            color: #1e3c72;
-            font-size: 18px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 8px;
-        }
-
-        /* リンクをカード全体に適用 */
-        .task-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
             margin-bottom: 12px;
-            transition: transform 0.1s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: background 0.2s;
         }
-        .task-link:hover { transform: translateY(-2px); }
+        .card-link { text-decoration: none; color: inherit; display: block; }
+        .card-link:active { background: #f8f9fa; }
 
-        .task-card {
-            background: #fdfdfd;
-            border-left: 5px solid #1e3c72;
-            padding: 15px;
-            border-radius: 0 8px 8px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #eee;
-        }
-        .task-important { border-left-color: #ff4b2b; background: #fff9f9; }
+        .card-content { padding: 15px; position: relative; }
+        .task-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .task-title { font-weight: bold; font-size: 15px; padding-right: 20px; }
+        .task-desc { font-size: 13px; color: #5f6368; }
         
-        .task-title { font-weight: bold; font-size: 15px; color: #111; margin-bottom: 5px; }
-        .task-desc { font-size: 13px; color: #555; line-height: 1.5; }
-        .tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; color: white; margin-left: 5px; vertical-align: middle; }
-        .tag-adm { background: #17a2b8; }
-        .tag-edu { background: #ffc107; color: #000; }
-        .tag-money { background: #28a745; }
-        .arrow { color: #ccc; font-size: 20px; padding-left: 10px; }
+        .tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .tag-must { background: #fce8e6; color: #d93025; } /* 必須 */
+        .tag-should { background: #e6ffed; color: #188038; } /* 推奨 */
+        .tag-info { background: #f1f3f4; color: #5f6368; } /* 情報 */
+
+        .arrow { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #dadce0; }
+        .no-link .arrow { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🛡️ 大和市・育児戦略ダッシュボード</h1>
-            <div class="info-panel" id="statusSummary">計算中...</div>
-            <button class="update-btn" onclick="renderDashboard()">最新の公式情報を反映</button>
+            <h1>大和市 育児タスク・コンシェルジュ</h1>
+            <div id="ageDisplay" class="age-badge">計算中...</div>
+            <button class="update-btn" onclick="render()">現在の状況を解析</button>
         </header>
 
-        <div id="mainContent"></div>
+        <div id="content"></div>
     </div>
 
     <script>
         const BIRTH = new Date('2024-04-01');
-        const SUBSIDY_START = new Date('2027-06-01');
 
-        function renderDashboard() {
+        function render() {
             const now = new Date();
-            const ageMonths = (now.getFullYear() - BIRTH.getFullYear()) * 12 + (now.getMonth() - BIRTH.getMonth());
-            const years = Math.floor(ageMonths / 12);
-            const months = ageMonths % 12;
+            const diff = (now.getFullYear() - BIRTH.getFullYear()) * 12 + (now.getMonth() - BIRTH.getMonth());
+            const years = Math.floor(diff / 12);
+            const months = diff % 12;
 
-            document.getElementById('statusSummary').innerHTML = 
-                `<strong>お子様:</strong> ${years}歳${months}ヶ月 | <strong>大和市</strong><br>` +
-                `<strong>家賃補助開始:</strong> 2027/06〜 (月+5万円)`;
+            document.getElementById('ageDisplay').textContent = `${years}歳 ${months}ヶ月`;
 
-            const content = document.getElementById('mainContent');
-            content.innerHTML = '';
+            const container = document.getElementById('content');
+            container.innerHTML = '';
 
-            // 1. 行政・金銭（リンク付）
-            addSection(content, "💰 申請必須！損をしない手続き", [
+            // 1. 行政手続きセクション
+            addSection(container, "📋 大和市：必須の手続き・健診", [
+                {
+                    title: "3歳6か月児健康診査（大和市独自）",
+                    desc: "大和市は3歳半で実施。視力・聴力検査は自宅で行う必要があるため、事前に案内を熟読してください。",
+                    tag: "必須", tagClass: "tag-must",
+                    url: "https://www.city.yamato.lg.jp/section/ehon_no_machi/age/F/F00001.html"
+                },
                 {
                     title: "幼児教育・保育無償化の認定申請",
-                    desc: "幼稚園入園前に必須。大和市の「子育て王国」サイトで詳細を確認。",
-                    url: "https://www.city.yamato.lg.jp/section/ehon_no_machi/life_event/nyuen/index.html",
-                    tag: "最重要", tagClass: "tag-adm"
+                    desc: "2028年4月入園に向けて、2027年秋頃に申請が必要です。市役所からの通知を見逃さないこと。",
+                    tag: "必須", tagClass: "tag-must",
+                    url: "https://www.city.yamato.lg.jp/gyosei/soshik/31/kosodate/hoikuen_yochien/yochien/5515.html"
                 },
                 {
-                    title: "児童手当：電子申請窓口",
-                    desc: "転職や引越しの際は必須。遡り支給がないため即実行が鉄則です。",
-                    url: "https://www.city.yamato.lg.jp/gyosei/soshik/7/sonohokanojoho/kosodate/kosodatesupport/6385.html",
-                    tag: "現金", tagClass: "tag-money"
-                },
-                {
-                    title: "大和市：らくらく予防接種",
-                    desc: "月齢に合わせたスケジュール管理。神奈川県アプリとの連携も可能。",
-                    url: "https://yamato.city-hc.jp/",
-                    tag: "医療", tagClass: "tag-adm"
+                    title: "児童手当・現況届の確認",
+                    desc: "現在は原則提出不要ですが、所得上限や世帯状況に変更があった場合は自治体への確認が安全です。",
+                    tag: "確認", tagClass: "tag-info",
+                    url: "https://www.city.yamato.lg.jp/gyosei/soshik/7/sonohokanojoho/kosodate/kosodatesupport/6385.html"
                 }
             ]);
 
-            // 2. 教育・健診
-            addSection(content, "🏫 大和市 幼稚園・健診スケジュール", [
+            // 2. 月齢別・やった方が良いこと
+            addSection(container, "💡 今の月齢でやるべきこと", [
                 {
-                    title: "3歳6か月児健康診査の詳細",
-                    desc: "大和市では3歳半で実施。視力・聴力検査のやり方を公式動画等で予習。",
-                    url: "https://www.city.yamato.lg.jp/section/ehon_no_machi/age/F/F00001.html",
-                    tag: "健診", tagClass: "tag-adm"
+                    title: "2歳児の「イヤイヤ期」戦略的対応",
+                    desc: "自我の芽生え時期。ディレクター的な視点で『選択肢を2つ提示して選ばせる』など、子供の自律性を促す関わりを推奨。",
+                    tag: "推奨", tagClass: "tag-should",
+                    url: "" // ソースなし
                 },
                 {
-                    title: "大和市：幼稚園利用ガイド（最新版）",
-                    desc: "入園までの流れ、各園の特色がまとまった必読資料です。",
-                    url: "https://www.city.yamato.lg.jp/gyosei/soshik/31/kosodate/hoikuen_yochien/yochien/5515.html",
-                    tag: "教育", tagClass: "tag-edu"
+                    title: "幼稚園「プレ保育」のリサーチ・申し込み",
+                    desc: "2028年4月入園の場合、2027年4月（来年）からプレ入園が始まります。この4月〜6月に募集をかける園が多いです。",
+                    tag: "重要", tagClass: "tag-must",
+                    url: "https://www.city.yamato.lg.jp/gyosei/soshik/31/kosodate/hoikuen_yochien/yochien/index.html"
+                },
+                {
+                    title: "箸のトレーニング開始検討",
+                    desc: "2歳半頃から興味を持ち始める時期。エジソン箸などの補助具を検討しても良い時期です。",
+                    tag: "推奨", tagClass: "tag-should",
+                    url: "" // ソースなし
+                },
+                {
+                    title: "大和市：らくらく予防接種で日本脳炎確認",
+                    desc: "日本脳炎1期追加（3回目）の時期を確認。標準的には2歳〜3歳未満で接種します。",
+                    tag: "医療", tagClass: "tag-must",
+                    url: "https://yamato.city-hc.jp/"
                 }
             ]);
 
-            // 3. 副業・資産
-            addSection(content, "📈 キャリア・資産戦略リンク", [
+            // 3. 多忙なパパへのアドバイス
+            addSection(container, "👔 ディレクター・パパへの助言", [
                 {
-                    title: "新NISA：大和証券/SBI等での運用再考",
-                    desc: "2027年からの家賃補助5万円を「成長投資枠」へ回すシミュレーション。",
-                    url: "https://www.fsa.go.jp/policy/nisa2/index.html",
-                    tag: "投資", tagClass: "tag-money"
+                    title: "週末の「公園リサーチ」",
+                    desc: "大和市には引地台公園やゆとりの森など優良な公園が多いです。子供の身体能力を確認しつつ、パパの運動不足解消も。",
+                    tag: "推奨", tagClass: "tag-should",
+                    url: "https://www.city.yamato.lg.jp/section/ehon_no_machi/spot/park/index.html"
                 },
                 {
-                    title: "note：クリエイター向け最新動向",
-                    desc: "副業収益化のため、他ディレクターの成功事例をチェック。",
-                    url: "https://note.com/topic/creators",
-                    tag: "副業", tagClass: "tag-money"
+                    title: "家事の「仕組み化」再確認",
+                    desc: "来年からの家賃補助5万を原資に、さらなる時短家電の導入（最新の乾燥機やルンバ等）を検討し、note執筆時間を捻出。",
+                    tag: "戦略", tagClass: "tag-info",
+                    url: "" 
                 }
             ]);
         }
 
         function addSection(container, title, tasks) {
-            let html = `<div class="section"><h2>${title}</h2>`;
+            let html = `<div class="section-title">${title}</div>`;
             tasks.forEach(t => {
+                const hasUrl = t.url !== "";
                 html += `
-                    <a href="${t.url}" target="_blank" rel="noopener noreferrer" class="task-link">
-                        <div class="task-card ${t.tag === '最重要' ? 'task-important' : ''}">
-                            <div class="task-main">
-                                <div class="task-title">${t.title}<span class="tag ${t.tagClass}">${t.tag}</span></div>
+                    <div class="card ${hasUrl ? '' : 'no-link'}">
+                        ${hasUrl ? `<a href="${t.url}" target="_blank" rel="noopener noreferrer" class="card-link">` : ''}
+                            <div class="card-content">
+                                <div class="task-header">
+                                    <span class="task-title">${t.title}</span>
+                                    <span class="tag ${t.tagClass}">${t.tag}</span>
+                                </div>
                                 <div class="task-desc">${t.desc}</div>
+                                ${hasUrl ? '<div class="arrow">›</div>' : ''}
                             </div>
-                            <div class="arrow">›</div>
-                        </div>
-                    </a>`;
+                        ${hasUrl ? `</a>` : ''}
+                    </div>`;
             });
-            html += `</div>`;
             container.innerHTML += html;
         }
 
-        renderDashboard();
+        render();
     </script>
 </body>
 </html>
