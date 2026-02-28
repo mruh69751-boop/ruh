@@ -116,6 +116,10 @@
             display: block;
         }
 
+        .news-item:hover {
+            transform: translateX(5px);
+        }
+
         .news-item:active {
             transform: scale(0.98);
         }
@@ -212,15 +216,21 @@
     </div>
 
     <script>
-        const entertainmentSites = [
-            'ファミ通', '4Gamer', '電撃オンライン', 'IGN Japan', 'アニメ!アニメ!',
-            'コミックナタリー', 'ねとらぼ', 'GIGAZINE', 'オタク産業通信', 'Game Watch'
-        ];
-
-        const economySites = [
-            '日本経済新聞', '東洋経済', 'ダイヤモンド', 'ロイター', 'Bloomberg',
-            '週刊エコノミスト', 'NewsPicks', 'ITmedia', '現代ビジネス', '日経ビジネス'
-        ];
+        // ニュースソース定義（実際のURLとフィード）
+        const newsSources = {
+            entertainment: [
+                { name: 'ファミ通.com', url: 'https://www.famitsu.com/', feed: 'https://www.famitsu.com/feed' },
+                { name: '4Gamer.net', url: 'https://www.4gamer.net/', feed: 'https://www.4gamer.net/rss/index.xml' },
+                { name: 'GAME Watch', url: 'https://game.watch.impress.co.jp/', feed: 'https://game.watch.impress.co.jp/data/rss/1.0/gmw/feed.rdf' },
+                { name: 'IGN Japan', url: 'https://jp.ign.com/', feed: 'https://jp.ign.com/feed.xml' },
+                { name: 'アニメ!アニメ!', url: 'https://animeanime.jp/', feed: 'https://animeanime.jp/feed/' }
+            ],
+            economy: [
+                { name: 'ロイター', url: 'https://jp.reuters.com/', feed: 'https://jp.reuters.com/rssFeed/businessNews' },
+                { name: 'ITmedia', url: 'https://www.itmedia.co.jp/', feed: 'https://rss.itmedia.co.jp/rss/2.0/news_bursts.xml' },
+                { name: 'CNET Japan', url: 'https://japan.cnet.com/', feed: 'https://feeds.japan.cnet.com/rss/index.rdf' }
+            ]
+        };
 
         async function fetchNews() {
             const updateBtn = document.getElementById('updateBtn');
@@ -234,61 +244,12 @@
             error.classList.remove('active');
 
             try {
-                // Anthropic APIを使って最新ニュースを取得
-                const prompt = `今日の日付で、以下のカテゴリーから最新ニュース見出しを10個ずつ生成してください。
+                // サンプルニュースを生成（RSSフィードの代わり）
+                const entertainmentNews = generateSampleNews(newsSources.entertainment);
+                const economyNews = generateSampleNews(newsSources.economy);
 
-ゲーム・エンタメ・オタク文化サイト: ${entertainmentSites.join(', ')}
-日本経済サイト: ${economySites.join(', ')}
-
-各ニュースには以下を含めてください：
-- source: メディア名
-- title: 見出し（リアルで具体的に）
-- url: 実際のニュース記事URL（架空でOK、形式は正しく）
-- time: "X時間前" または "X分前"
-
-JSON形式で返してください：
-{
-  "entertainment": [
-    {"source": "ファミ通", "title": "...", "url": "https://...", "time": "2時間前"},
-    ...10個
-  ],
-  "economy": [
-    {"source": "日本経済新聞", "title": "...", "url": "https://...", "time": "1時間前"},
-    ...10個
-  ]
-}`;
-
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "anthropic-version": "2023-06-01"
-                    },
-                    body: JSON.stringify({
-                        model: "claude-sonnet-4-20250514",
-                        max_tokens: 4000,
-                        messages: [
-                            { role: "user", content: prompt }
-                        ]
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('APIリクエストに失敗しました');
-                }
-
-                const data = await response.json();
-                const content = data.content[0].text;
-                
-                const jsonMatch = content.match(/\{[\s\S]*\}/);
-                if (!jsonMatch) {
-                    throw new Error('ニュースデータの解析に失敗しました');
-                }
-                
-                const newsData = JSON.parse(jsonMatch[0]);
-
-                displayNews(entertainmentContainer, newsData.entertainment);
-                displayNews(economyContainer, newsData.economy);
+                displayNews(entertainmentContainer, entertainmentNews);
+                displayNews(economyContainer, economyNews);
 
                 // 最終更新時刻
                 const now = new Date();
@@ -297,7 +258,7 @@ JSON形式で返してください：
 
             } catch (err) {
                 console.error('エラー:', err);
-                error.textContent = 'ニュースの取得に失敗しました。GitHub Pagesにデプロイしてご利用ください。';
+                error.textContent = 'ニュースの取得に失敗しました: ' + err.message;
                 error.classList.add('active');
             } finally {
                 updateBtn.disabled = false;
@@ -305,9 +266,66 @@ JSON形式で返してください：
             }
         }
 
+        function generateSampleNews(sources) {
+            const templates = {
+                entertainment: [
+                    '新作タイトルの発売日が発表、予約受付開始',
+                    '人気シリーズの続編制作が正式決定',
+                    '大型アップデートが配信開始、新コンテンツ追加',
+                    'eスポーツ大会で日本チームが優勝',
+                    'コラボイベントが期間限定で開催中',
+                    '最新トレーラーが公開、注目の新要素が明らかに',
+                    'ユーザー数が過去最高を記録',
+                    '人気キャラクターの新グッズが発売決定',
+                    '公式大会の開催が発表、参加登録受付中',
+                    'サービス開始から周年記念イベント実施'
+                ],
+                economy: [
+                    '大手企業が過去最高益を発表',
+                    '新技術への投資を拡大、事業強化へ',
+                    '株価が年初来高値を更新',
+                    'M&A交渉が最終段階、来月発表へ',
+                    '新製品の販売が好調、増産体制へ',
+                    '海外市場での事業展開を加速',
+                    '業界再編の動きが活発化',
+                    'デジタル化投資を大幅増額',
+                    '四半期決算で増収増益を達成',
+                    '新規事業への参入を正式発表'
+                ]
+            };
+
+            const category = sources === newsSources.entertainment ? 'entertainment' : 'economy';
+            const newsItems = [];
+            
+            // 各ソースから1-2件ずつニュースを生成
+            sources.forEach((source, idx) => {
+                const numArticles = Math.floor(Math.random() * 2) + 1;
+                for (let i = 0; i < numArticles && newsItems.length < 10; i++) {
+                    const template = templates[category][Math.floor(Math.random() * templates[category].length)];
+                    const hoursAgo = Math.floor(Math.random() * 24);
+                    const minutesAgo = Math.floor(Math.random() * 60);
+                    
+                    newsItems.push({
+                        source: source.name,
+                        title: template,
+                        url: source.url,
+                        time: hoursAgo > 0 ? `${hoursAgo}時間前` : `${minutesAgo}分前`
+                    });
+                }
+            });
+
+            // シャッフルして10件に制限
+            return newsItems.sort(() => Math.random() - 0.5).slice(0, 10);
+        }
+
         function displayNews(container, newsItems) {
+            if (newsItems.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center;">ニュースが見つかりませんでした</p>';
+                return;
+            }
+
             container.innerHTML = newsItems.map(item => `
-                <a href="${item.url}" target="_blank" class="news-item">
+                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-item">
                     <div class="news-source">${item.source}</div>
                     <h3>${item.title}</h3>
                     <div class="news-time">${item.time}</div>
@@ -315,8 +333,8 @@ JSON形式で返してください：
             `).join('');
         }
 
+        // ページ読み込み時の初期表示
         console.log('マイニュースアグリゲーターが起動しました！');
-        console.log('このファイルをGitHub Pagesにデプロイしてご利用ください。');
     </script>
 </body>
 </html>
