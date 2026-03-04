@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>戦略ニュースダッシュボード</title>
+    <title>戦略ニュースダッシュボード V4</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -26,7 +26,6 @@
             margin-bottom: 30px;
         }
 
-        /* セクション・アコーディオン設定 */
         .section {
             background: rgba(30, 41, 59, 0.7); border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1); overflow: hidden;
@@ -40,12 +39,10 @@
         .section-header h2 { font-size: 16px; color: #38bdf8; display: flex; align-items: center; }
         .section-header h2::before { content: '▶'; margin-right: 8px; font-size: 12px; transition: transform 0.3s; }
         
-        /* 開いている時のスタイル */
         .section.open .section-header h2::before { transform: rotate(90deg); }
         .section-content { display: none; padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
         .section.open .section-content { display: block; }
 
-        /* まとめサイト用カラー */
         .summary-box .section-header h2 { color: #fbbf24; }
         .summary-section-title { text-align: center; color: #fbbf24; margin: 30px 0 15px; font-size: 18px; border-top: 1px solid rgba(251, 191, 36, 0.3); padding-top: 20px; }
 
@@ -72,28 +69,28 @@
             <div id="lastUpdate" class="last-update"></div>
         </header>
 
-        <div id="loading" class="loading">📡 同期中...</div>
+        <div id="loading" class="loading">📡 最新データを取得中...</div>
 
         <div class="category-grid">
             <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🇯🇵 日本株・市場</h2></div>
+                <div class="section-header"><h2>🇯🇵 日本株・国内経済</h2></div>
                 <div class="section-content" id="jpStocksNews"></div>
             </div>
             <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🇺🇸 海外株・米国</h2></div>
+                <div class="section-header"><h2>🇺🇸 海外株・グローバル</h2></div>
                 <div class="section-content" id="usStocksNews"></div>
             </div>
             <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🏢 経済・ビジネス</h2></div>
+                <div class="section-header"><h2>🏢 ビジネス・IT</h2></div>
                 <div class="section-content" id="economyNews"></div>
             </div>
             <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🎮 ゲーム・業界</h2></div>
+                <div class="section-header"><h2>🎮 ゲーム・業界動向</h2></div>
                 <div class="section-content" id="entertainmentNews"></div>
             </div>
         </div>
 
-        <div class="summary-section-title">🔥 まとめ・アンテナ</div>
+        <div class="summary-section-title">🔥 まとめ・エンタメ</div>
         <div class="category-grid" id="summaryArea"></div>
     </div>
 
@@ -101,22 +98,33 @@
         const CONFIG = {
             keywords: ['株価', '決算', 'S&P500', '利上げ', '円安', '買収', '新作', 'Unreal Engine', 'KONAMI', 'サイバーエージェント'],
             sources: {
-                jpStocks: [{ name: 'ロイター 日本株', feed: 'https://jp.reuters.com/rssFeed/stocksNews/' }, { name: '産経経済', feed: 'https://www.sankei.com/rss/news/economy.xml' }],
-                usStocks: [{ name: 'ロイター 海外株', feed: 'https://jp.reuters.com/rssFeed/worldNews/' }, { name: 'CNN経済', feed: 'https://www.cnn.co.jp/rss/xml/business.xml' }],
-                economy: [{ name: 'ITmedia', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' }, { name: 'CNET', feed: 'https://japan.cnet.com/rss/index.rdf' }],
-                entertainment: [{ name: 'ファミ通', feed: 'https://www.famitsu.com/feed' }, { name: '4Gamer', feed: 'https://www.4gamer.net/rss/index.xml' }]
+                jpStocks: [
+                    { name: '時事通信 経済', feed: 'https://www.jiji.com/rss/economy.xml' },
+                    { name: 'ダイヤモンド・オンライン', feed: 'https://diamond.jp/list/feed/rss' }
+                ],
+                usStocks: [
+                    { name: 'ロイター 世界', feed: 'https://jp.reuters.com/rssFeed/worldNews/' },
+                    { name: 'AFPBB 経済', feed: 'https://www.afpbb.com/rss/category/business' }
+                ],
+                economy: [
+                    { name: 'ITmedia ビジネス', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' },
+                    { name: 'CNET Japan', feed: 'https://japan.cnet.com/rss/index.rdf' }
+                ],
+                entertainment: [
+                    { name: 'ファミ通', feed: 'https://www.famitsu.com/feed' },
+                    { name: '4Gamer', feed: 'https://www.4gamer.net/rss/index.xml' }
+                ]
             },
             summarySources: [
                 { name: 'はちま起稿', feed: 'http://blog.esuteru.com/index.rdf' },
-                { name: 'しぃアンテナ', feed: 'http://2ch-c.net/?xml' },
-                { name: 'オタク.com', feed: 'http://otakomu.jp/index.rdf' },
-                { name: '俺的ゲーム速報', feed: 'http://jin115.com/index.rdf' }
+                { name: '俺的ゲーム速報', feed: 'http://jin115.com/index.rdf' },
+                { name: 'ガジェット通信', feed: 'https://getnews.jp/feed' },
+                { name: 'ニュー速クオリティ', feed: 'http://news4quality.blog.fc2.com/?xml' }
             ]
         };
 
         const RSS_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
-        // セクションの開閉を制御
         function toggleSection(el) {
             el.classList.toggle('open');
         }
@@ -147,11 +155,11 @@
             for (const src of CONFIG.summarySources) {
                 const box = document.createElement('div');
                 box.className = 'section summary-box';
-                box.onclick = function() { toggleSection(this); }; // まとめも開閉
-                box.innerHTML = `<div class="section-header"><h2>${src.name}</h2></div><div class="section-content" id="summary-${src.name}"></div>`;
+                box.onclick = function(e) { e.stopPropagation(); toggleSection(this); };
+                box.innerHTML = `<div class="section-header"><h2>${src.name}</h2></div><div class="section-content" id="summary-${src.name.replace(/\s+/g, '')}"></div>`;
                 container.appendChild(box);
                 const items = await fetchAndProcess([src], 3);
-                renderItems(document.getElementById(`summary-${src.name}`), items);
+                renderItems(document.getElementById(`summary-${src.name.replace(/\s+/g, '')}`), items);
             }
         }
 
@@ -175,7 +183,8 @@
         }
 
         function renderItems(container, items) {
-            if (items.length === 0) { container.innerHTML = '<p style="font-size:11px; color:#64748b; text-align:center;">取得待ち</p>'; return; }
+            if (!container) return;
+            if (items.length === 0) { container.innerHTML = '<p style="font-size:11px; color:#64748b; text-align:center;">現在配信なし</p>'; return; }
             container.innerHTML = items.map(item => `
                 <a href="${item.link}" target="_blank" class="news-item ${item.isImportant ? 'important' : ''}">
                     <div class="news-meta">
