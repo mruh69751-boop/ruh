@@ -3,27 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>戦略ニュースダッシュボード V4</title>
+    <title>定点観測ダッシュボード</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
             background: #0f172a; min-height: 100vh; padding: 15px; color: #f1f5f9;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 25px; }
-        h1 { color: #38bdf8; font-size: 22px; margin-bottom: 15px; }
-        .update-btn {
-            background: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
-            color: white; border: none; padding: 12px 35px;
-            font-size: 15px; border-radius: 10px; cursor: pointer;
-            font-weight: bold; transition: 0.3s;
-        }
-        .last-update { margin-top: 10px; font-size: 12px; opacity: 0.6; text-align: center; }
-
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 15px; }
+        h1 { color: #38bdf8; font-size: 20px; letter-spacing: 1px; }
+        
         .category-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px;
-            margin-bottom: 30px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;
         }
 
         .section {
@@ -31,172 +23,154 @@
             border: 1px solid rgba(255, 255, 255, 0.1); overflow: hidden;
         }
         .section-header {
-            padding: 15px; background: rgba(56, 189, 248, 0.05);
+            padding: 12px 15px; background: rgba(56, 189, 248, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .section-header h2 { font-size: 15px; color: #38bdf8; }
+
+        .link-list { padding: 10px; }
+        .site-card {
+            background: rgba(15, 23, 42, 0.5);
+            margin-bottom: 8px; border-radius: 8px;
             display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; transition: background 0.2s;
+            padding: 10px 12px; transition: 0.2s;
+            border: 1px solid transparent;
         }
-        .section-header:hover { background: rgba(56, 189, 248, 0.1); }
-        .section-header h2 { font-size: 16px; color: #38bdf8; display: flex; align-items: center; }
-        .section-header h2::before { content: '▶'; margin-right: 8px; font-size: 12px; transition: transform 0.3s; }
-        
-        .section.open .section-header h2::before { transform: rotate(90deg); }
-        .section-content { display: none; padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
-        .section.open .section-content { display: block; }
+        .site-card:hover { border-color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
 
+        .site-info { text-decoration: none; color: #e2e8f0; flex-grow: 1; }
+        .site-name { font-size: 14px; font-weight: bold; display: block; margin-bottom: 2px; }
+        .site-desc { font-size: 11px; color: #94a3b8; }
+
+        .jump-btn {
+            background: #38bdf8; color: #0f172a;
+            text-decoration: none; font-size: 11px; font-weight: bold;
+            padding: 6px 10px; border-radius: 6px; white-space: nowrap;
+            margin-left: 10px; transition: 0.2s;
+        }
+        .jump-btn:hover { background: #7dd3fc; }
+
+        /* まとめサイト用カラー */
+        .summary-box .section-header { background: rgba(251, 191, 36, 0.1); }
         .summary-box .section-header h2 { color: #fbbf24; }
-        .summary-section-title { text-align: center; color: #fbbf24; margin: 30px 0 15px; font-size: 18px; border-top: 1px solid rgba(251, 191, 36, 0.3); padding-top: 20px; }
+        .summary-box .jump-btn { background: #fbbf24; }
 
-        .news-item {
-            background: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 8px;
-            margin-bottom: 8px; text-decoration: none; color: #e2e8f0; display: block;
-            border: 1px solid transparent; transition: 0.2s;
-        }
-        .news-item:hover { background: rgba(56, 189, 248, 0.1); border-color: #38bdf8; transform: translateX(3px); }
-        .news-item.important { border-left: 4px solid #f43f5e; background: rgba(244, 63, 94, 0.05); }
-        .news-item.important h3 { color: #fb7185; }
-        .news-meta { font-size: 10px; display: flex; justify-content: space-between; margin-bottom: 5px; color: #94a3b8; }
-        .source-tag { font-weight: bold; color: #38bdf8; }
-        .news-item h3 { font-size: 13px; line-height: 1.5; }
-        .loading { text-align: center; padding: 20px; display: none; color: #38bdf8; font-weight: bold; }
-        .loading.active { display: block; }
+        .footer-note { text-align: center; font-size: 11px; color: #64748b; margin-top: 30px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📊 戦略ニュースダッシュボード</h1>
-            <button class="update-btn" id="updateBtn" onclick="fetchNews()">更新</button>
-            <div id="lastUpdate" class="last-update"></div>
+            <h1>📊 戦略的定点観測ボード</h1>
         </header>
 
-        <div id="loading" class="loading">📡 最新データを取得中...</div>
-
         <div class="category-grid">
-            <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🇯🇵 日本株・国内経済</h2></div>
-                <div class="section-content" id="jpStocksNews"></div>
+            <div class="section">
+                <div class="section-header"><h2>📈 投資・市場動向</h2></div>
+                <div class="link-list">
+                    <div class="site-card">
+                        <a href="https://kabutan.jp/" target="_blank" class="site-info">
+                            <span class="site-name">株探 (Kabutan)</span>
+                            <span class="site-desc">日本株速報・決算・上方修正</span>
+                        </a>
+                        <a href="https://kabutan.jp/news/marketnews/" target="_blank" class="jump-btn">市況速報</a>
+                    </div>
+                    <div class="site-card">
+                        <a href="https://jp.investing.com/" target="_blank" class="site-info">
+                            <span class="site-name">Investing.com</span>
+                            <span class="site-desc">リアルタイム先物・為替・指数</span>
+                        </a>
+                        <a href="https://jp.investing.com/indices/us-30" target="_blank" class="jump-btn">NYダウ</a>
+                    </div>
+                    <div class="site-card">
+                        <a href="https://www.nikkei.com/" target="_blank" class="site-info">
+                            <span class="site-name">日本経済新聞</span>
+                            <span class="site-desc">国内経済・ビジネスの定点観測</span>
+                        </a>
+                        <a href="https://www.nikkei.com/news/category/" target="_blank" class="jump-btn">速報一覧</a>
+                    </div>
+                </div>
             </div>
-            <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🇺🇸 海外株・グローバル</h2></div>
-                <div class="section-content" id="usStocksNews"></div>
+
+            <div class="section">
+                <div class="section-header"><h2>🎮 ゲーム・テック</h2></div>
+                <div class="link-list">
+                    <div class="site-card">
+                        <a href="https://www.famitsu.com/" target="_blank" class="site-info">
+                            <span class="site-name">ファミ通.com</span>
+                            <span class="site-desc">業界動向・新作ニュース</span>
+                        </a>
+                        <a href="https://www.famitsu.com/news/" target="_blank" class="jump-btn">新着</a>
+                    </div>
+                    <div class="site-card">
+                        <a href="https://gamebiz.jp/" target="_blank" class="site-info">
+                            <span class="site-name">gamebiz</span>
+                            <span class="site-desc">ゲーム業界の決算・ビジネス・人事</span>
+                        </a>
+                        <a href="https://gamebiz.jp/news" target="_blank" class="jump-btn">最新</a>
+                    </div>
+                    <div class="site-card">
+                        <a href="https://itmedia.co.jp/" target="_blank" class="site-info">
+                            <span class="site-name">ITmedia</span>
+                            <span class="site-desc">最新ガジェット・テクノロジー動向</span>
+                        </a>
+                        <a href="https://www.itmedia.co.jp/news/subindex/all_archive.html" target="_blank" class="jump-blank jump-btn">速報</a>
+                    </div>
+                </div>
             </div>
-            <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🏢 ビジネス・IT</h2></div>
-                <div class="section-content" id="economyNews"></div>
+
+            <div class="section summary-box">
+                <div class="section-header"><h2>🔥 まとめ・エンタメ</h2></div>
+                <div class="link-list">
+                    <div class="site-card">
+                        <a href="http://blog.esuteru.com/" target="_blank" class="site-info">
+                            <span class="site-name">はちま起稿</span>
+                            <span class="site-desc">ゲーム・IT・雑多トレンド</span>
+                        </a>
+                        <a href="http://blog.esuteru.com/" target="_blank" class="jump-btn">TOP</a>
+                    </div>
+                    <div class="site-card">
+                        <a href="http://jin115.com/" target="_blank" class="site-info">
+                            <span class="site-name">俺的ゲーム速報JIN</span>
+                            <span class="site-desc">投資・ゲーム・ネットの話題</span>
+                        </a>
+                        <a href="http://jin115.com/" target="_blank" class="jump-btn">TOP</a>
+                    </div>
+                    <div class="site-card">
+                        <a href="https://getnews.jp/" target="_blank" class="site-info">
+                            <span class="site-name">ガジェット通信</span>
+                            <span class="site-desc">エンタメ・テック・おもしろ記事</span>
+                        </a>
+                        <a href="https://getnews.jp/archives" target="_blank" class="jump-btn">記事一覧</a>
+                    </div>
+                </div>
             </div>
-            <div class="section" onclick="toggleSection(this)">
-                <div class="section-header"><h2>🎮 ゲーム・業界動向</h2></div>
-                <div class="section-content" id="entertainmentNews"></div>
+
+            <div class="section summary-box">
+                <div class="section-header"><h2>📡 ニュース速報・アンテナ</h2></div>
+                <div class="link-list">
+                    <div class="site-card">
+                        <a href="https://2ch-c.net/" target="_blank" class="site-info">
+                            <span class="site-name">しぃアンテナ</span>
+                            <span class="site-desc">2chまとめの総合アンテナ</span>
+                        </a>
+                        <a href="https://2ch-c.net/" target="_blank" class="jump-btn">最新</a>
+                    </div>
+                    <div class="site-card">
+                        <a href="https://news4quality.blog.fc2.com/" target="_blank" class="site-info">
+                            <span class="site-name">ニュー速クオリティ</span>
+                            <span class="site-desc">ネット上のホットな話題を抽出</span>
+                        </a>
+                        <a href="https://news4quality.blog.fc2.com/" target="_blank" class="jump-btn">最新</a>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="summary-section-title">🔥 まとめ・エンタメ</div>
-        <div class="category-grid" id="summaryArea"></div>
+        <div class="footer-note">
+            ※各サイトを直接確認することで、API制限なく最新情報を取得できます。<br>
+            通勤中や休憩中の「巡回」を効率化するためのリンク集です。
+        </div>
     </div>
-
-    <script>
-        const CONFIG = {
-            keywords: ['株価', '決算', 'S&P500', '利上げ', '円安', '買収', '新作', 'Unreal Engine', 'KONAMI', 'サイバーエージェント'],
-            sources: {
-                jpStocks: [
-                    { name: '時事通信 経済', feed: 'https://www.jiji.com/rss/economy.xml' },
-                    { name: 'ダイヤモンド・オンライン', feed: 'https://diamond.jp/list/feed/rss' }
-                ],
-                usStocks: [
-                    { name: 'ロイター 世界', feed: 'https://jp.reuters.com/rssFeed/worldNews/' },
-                    { name: 'AFPBB 経済', feed: 'https://www.afpbb.com/rss/category/business' }
-                ],
-                economy: [
-                    { name: 'ITmedia ビジネス', feed: 'https://rss.itmedia.co.jp/rss/2.0/itc_bus_all.xml' },
-                    { name: 'CNET Japan', feed: 'https://japan.cnet.com/rss/index.rdf' }
-                ],
-                entertainment: [
-                    { name: 'ファミ通', feed: 'https://www.famitsu.com/feed' },
-                    { name: '4Gamer', feed: 'https://www.4gamer.net/rss/index.xml' }
-                ]
-            },
-            summarySources: [
-                { name: 'はちま起稿', feed: 'http://blog.esuteru.com/index.rdf' },
-                { name: '俺的ゲーム速報', feed: 'http://jin115.com/index.rdf' },
-                { name: 'ガジェット通信', feed: 'https://getnews.jp/feed' },
-                { name: 'ニュー速クオリティ', feed: 'http://news4quality.blog.fc2.com/?xml' }
-            ]
-        };
-
-        const RSS_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
-
-        function toggleSection(el) {
-            el.classList.toggle('open');
-        }
-
-        async function fetchNews() {
-            const btn = document.getElementById('updateBtn');
-            const loader = document.getElementById('loading');
-            btn.disabled = true;
-            loader.classList.add('active');
-
-            try {
-                await Promise.all(Object.keys(CONFIG.sources).map(cat => loadCategory(cat, `${cat}News`)));
-                await loadSummaries();
-                document.getElementById('lastUpdate').textContent = `最終更新: ${new Date().toLocaleString('ja-JP')}`;
-            } catch (err) { console.error(err); }
-            finally { btn.disabled = false; loader.classList.remove('active'); }
-        }
-
-        async function loadCategory(type, containerId) {
-            const container = document.getElementById(containerId);
-            const items = await fetchAndProcess(CONFIG.sources[type], 8);
-            renderItems(container, items);
-        }
-
-        async function loadSummaries() {
-            const container = document.getElementById('summaryArea');
-            container.innerHTML = '';
-            for (const src of CONFIG.summarySources) {
-                const box = document.createElement('div');
-                box.className = 'section summary-box';
-                box.onclick = function(e) { e.stopPropagation(); toggleSection(this); };
-                box.innerHTML = `<div class="section-header"><h2>${src.name}</h2></div><div class="section-content" id="summary-${src.name.replace(/\s+/g, '')}"></div>`;
-                container.appendChild(box);
-                const items = await fetchAndProcess([src], 3);
-                renderItems(document.getElementById(`summary-${src.name.replace(/\s+/g, '')}`), items);
-            }
-        }
-
-        async function fetchAndProcess(feeds, count) {
-            const results = await Promise.all(feeds.map(async (src) => {
-                try {
-                    const response = await fetch(RSS_API + encodeURIComponent(src.feed) + '&t=' + Date.now());
-                    const data = await response.json();
-                    if (data.status === 'ok') {
-                        return data.items.map(item => ({
-                            source: src.name, title: item.title, link: item.link,
-                            date: item.pubDate ? new Date(item.pubDate) : new Date()
-                        }));
-                    }
-                    return [];
-                } catch (e) { return []; }
-            }));
-            return results.flat().map(item => ({
-                ...item, isImportant: CONFIG.keywords.some(k => item.title.includes(k))
-            })).sort((a, b) => (a.isImportant === b.isImportant ? b.date - a.date : a.isImportant ? -1 : 1)).slice(0, count);
-        }
-
-        function renderItems(container, items) {
-            if (!container) return;
-            if (items.length === 0) { container.innerHTML = '<p style="font-size:11px; color:#64748b; text-align:center;">現在配信なし</p>'; return; }
-            container.innerHTML = items.map(item => `
-                <a href="${item.link}" target="_blank" class="news-item ${item.isImportant ? 'important' : ''}">
-                    <div class="news-meta">
-                        <span class="source-tag">${item.isImportant ? '🔥重要' : item.source}</span>
-                        <span>${item.date.getMonth()+1}/${item.date.getDate()} ${item.date.getHours()}:${String(item.date.getMinutes()).padStart(2,'0')}</span>
-                    </div>
-                    <h3>${item.title}</h3>
-                </a>
-            `).join('');
-        }
-
-        fetchNews();
-    </script>
 </body>
 </html>
